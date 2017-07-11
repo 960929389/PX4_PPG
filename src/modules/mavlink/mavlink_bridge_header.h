@@ -38,6 +38,8 @@
  * @author Lorenz Meier <lm@inf.ethz.ch>
  */
 
+
+
 /* MAVLink adapter header */
 #ifndef MAVLINK_BRIDGE_HEADER_H
 #define MAVLINK_BRIDGE_HEADER_H
@@ -84,7 +86,9 @@ void mavlink_end_uart_send(mavlink_channel_t chan, int length);
 extern mavlink_status_t *mavlink_get_channel_status(uint8_t chan);
 extern mavlink_message_t *mavlink_get_channel_buffer(uint8_t chan);
 
-#include <v2.0/standard/mavlink.h>
+//#include <v2.0/standard/mavlink.h>
+// custom messages:
+#include <v2.0/pixhawk/mavlink.h>
 
 __END_DECLS
 

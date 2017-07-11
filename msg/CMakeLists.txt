@@ -124,6 +124,10 @@ set(msg_file_names
 	vehicle_roi.msg
 	mount_orientation.msg
 	collision_report.msg
+	# custom messages:
+	parafoil_att.msg
+	parafoil_attrate.msg
+	
 	)
 
 # Get absolute paths

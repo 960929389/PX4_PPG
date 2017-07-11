@@ -126,6 +126,11 @@ set(config_module_list
 	modules/dataman
 
 	#
+	# Custome modules
+	#
+	modules/mavlink_msg_send_test
+
+	#
 	# Libraries
 	#
 	lib/controllib

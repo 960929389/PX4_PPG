@@ -92,6 +92,8 @@
 #include <uORB/topics/mount_orientation.h>
 #include <uORB/topics/collision_report.h>
 #include <uORB/uORB.h>
+#include <uORB/topics/parafoil_att.h>
+#include <uORB/topics/parafoil_attrate.h>
 
 
 static uint16_t cm_uint16_from_m_float(float m);
@@ -266,6 +268,148 @@ void get_mavlink_mode_state(struct vehicle_status_s *status, uint8_t *mavlink_st
 	}
 }
 
+class MavlinkStreamPARAFOIL_ATT : public MavlinkStream
+{
+public:
+	const char *get_name() const
+	{
+		return MavlinkStreamPARAFOIL_ATT::get_name_static();
+	}
+
+	static const char *get_name_static()
+	{
+		return "PARAFOIL_ATT";
+	}
+
+	static uint16_t get_id_static()
+	{
+		return MAVLINK_MSG_ID_PARAFOIL_ATT;
+	}
+
+	uint16_t get_id()
+	{
+		return get_id_static();
+	}
+
+	static MavlinkStream *new_instance(Mavlink *mavlink)
+	{
+		return new MavlinkStreamPARAFOIL_ATT(mavlink);
+	}
+
+	unsigned get_size()
+	{
+		return MAVLINK_MSG_ID_PARAFOIL_ATT_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+	}
+
+	bool const_rate()
+	{
+		return true;
+	}
+
+private:
+	MavlinkOrbSubscription *_parafoil_att_sub;
+	uint64_t _parafoil_att_time;
+
+	/* do not allow top copying this class */
+	MavlinkStreamPARAFOIL_ATT(MavlinkStreamPARAFOIL_ATT &);
+	MavlinkStreamPARAFOIL_ATT &operator = (const MavlinkStreamPARAFOIL_ATT &);
+
+protected:
+	explicit MavlinkStreamPARAFOIL_ATT(Mavlink *mavlink) : MavlinkStream(mavlink),
+		_parafoil_att_sub(_mavlink->add_orb_subscription(ORB_ID(parafoil_att)))
+	{}
+
+	void send(const hrt_abstime t)
+	{
+		struct parafoil_att_s parafoil_att;
+
+		bool updated = _parafoil_att_sub->update(&_parafoil_att_time, &parafoil_att);
+		/* always send the heartbeat, independent of the update status of the topics */
+		if (updated) {
+
+		           mavlink_parafoil_att_t msg;
+
+		           msg.timestamp=parafoil_att.timestamp;
+		           msg.parafoil_roll=parafoil_att.roll_angle;
+		           msg.parafoil_pitch=parafoil_att.pitch_angle;
+		           msg.parafoil_yaw=parafoil_att.yaw_angle;
+
+		           mavlink_msg_parafoil_att_send_struct(_mavlink->get_channel(), &msg);
+		       }
+	}
+};
+
+
+class MavlinkStreamPARAFOIL_ATTRATE : public MavlinkStream
+{
+public:
+	const char *get_name() const
+	{
+		return MavlinkStreamPARAFOIL_ATTRATE::get_name_static();
+	}
+
+	static const char *get_name_static()
+	{
+		return "PARAFOIL_ATTRATE";
+	}
+
+	static uint16_t get_id_static()
+	{
+		return MAVLINK_MSG_ID_PARAFOIL_ATTRATE;
+	}
+
+	uint16_t get_id()
+	{
+		return get_id_static();
+	}
+
+	static MavlinkStream *new_instance(Mavlink *mavlink)
+	{
+		return new MavlinkStreamPARAFOIL_ATTRATE(mavlink);
+	}
+
+	unsigned get_size()
+	{
+		return MAVLINK_MSG_ID_PARAFOIL_ATTRATE_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+	}
+
+	bool const_rate()
+	{
+		return true;
+	}
+
+private:
+	MavlinkOrbSubscription *_parafoil_attrate_sub;
+	uint64_t _parafoil_attrate_time;
+
+	/* do not allow top copying this class */
+	MavlinkStreamPARAFOIL_ATTRATE(MavlinkStreamPARAFOIL_ATTRATE &);
+	MavlinkStreamPARAFOIL_ATTRATE &operator = (const MavlinkStreamPARAFOIL_ATTRATE &);
+
+protected:
+	explicit MavlinkStreamPARAFOIL_ATTRATE(Mavlink *mavlink) : MavlinkStream(mavlink),
+		_parafoil_attrate_sub(_mavlink->add_orb_subscription(ORB_ID(parafoil_attrate)))
+	{}
+
+	void send(const hrt_abstime t)
+	{
+		struct parafoil_attrate_s parafoil_attrate;
+
+		bool updated = _parafoil_attrate_sub->update(&_parafoil_attrate_time, &parafoil_attrate);
+		/* always send the heartbeat, independent of the update status of the topics */
+		if (updated) {
+
+		           mavlink_parafoil_attrate_t msg;
+
+		           msg.timestamp=parafoil_attrate.timestamp;
+		           msg.parafoil_roll_rate=parafoil_attrate.roll_rate;
+		           msg.parafoil_pitch_rate=parafoil_attrate.pitch_rate;
+		           msg.parafoil_yaw_rate=parafoil_attrate.yaw_rate;
+
+		           mavlink_msg_parafoil_attrate_send_struct(_mavlink->get_channel(), &msg);
+		       }
+	}
+};
 
 class MavlinkStreamHeartbeat : public MavlinkStream
 {
@@ -3638,5 +3782,9 @@ const StreamListItem *streams_list[] = {
 	new StreamListItem(&MavlinkStreamCollision::new_instance, &MavlinkStreamCollision::get_name_static, &MavlinkStreamCollision::get_id_static),
 	new StreamListItem(&MavlinkStreamWind::new_instance, &MavlinkStreamWind::get_name_static, &MavlinkStreamWind::get_id_static),
 	new StreamListItem(&MavlinkStreamMountOrientation::new_instance, &MavlinkStreamMountOrientation::get_name_static, &MavlinkStreamMountOrientation::get_id_static),
+	 /********** ２ custom mavlink messages ***********/
+	new StreamListItem(&MavlinkStreamPARAFOIL_ATT::new_instance, &MavlinkStreamPARAFOIL_ATT::get_name_static, &MavlinkStreamPARAFOIL_ATT::get_id_static),
+	new StreamListItem(&MavlinkStreamPARAFOIL_ATTRATE::new_instance, &MavlinkStreamPARAFOIL_ATTRATE::get_name_static, &MavlinkStreamPARAFOIL_ATTRATE::get_id_static),
+
 	nullptr
 };
