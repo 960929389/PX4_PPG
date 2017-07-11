@@ -126,6 +126,11 @@ set(config_module_list
 	modules/dataman
 
 	#
+	# custom progress
+	#
+	modules/mavlink_msg_receive_test
+
+	#
 	# Libraries
 	#
 	lib/controllib

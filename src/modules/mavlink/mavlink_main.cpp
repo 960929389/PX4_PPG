@@ -1944,6 +1944,10 @@ Mavlink::task_main(int argc, char *argv[])
 	/* COMMAND_LONG stream: use high rate to avoid commands skipping */
 	configure_stream("COMMAND_LONG", 100.0f);
 
+	/* custom messages -libn 20170711 */
+	configure_stream("PARAFOIL_ATT", 10.0f);
+	configure_stream("PARAFOIL_ATTRATE", 10.0f);
+
 	/* PARAM_VALUE stream */
 	_parameters_manager = (MavlinkParametersManager *) MavlinkParametersManager::new_instance(this);
 	_parameters_manager->set_interval(interval_from_rate(120.0f));

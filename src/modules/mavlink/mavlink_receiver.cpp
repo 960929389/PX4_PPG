@@ -131,6 +131,8 @@ MavlinkReceiver::MavlinkReceiver(Mavlink *parent) :
 	_collision_report_pub(nullptr),
 	_control_state_pub(nullptr),
 	_gps_inject_data_pub(nullptr),
+	_parafoil_att_pub(nullptr),  //注意定义顺序与声明顺序相一致
+	_parafoil_attrate_pub(nullptr),
 	_command_ack_pub(nullptr),
 	_control_mode_sub(orb_subscribe(ORB_ID(vehicle_control_mode))),
 	_hil_frames(0),
@@ -274,6 +276,13 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 	case MAVLINK_MSG_ID_SERIAL_CONTROL:
 		handle_message_serial_control(msg);
 		break;
+
+	case MAVLINK_MSG_ID_PARAFOIL_ATT:
+	     handle_message_parafoil_att(msg);
+	     break;
+	case MAVLINK_MSG_ID_PARAFOIL_ATTRATE:
+		 handle_message_parafoil_attrate(msg);
+	     break;
 
 	case MAVLINK_MSG_ID_LOGGING_ACK:
 		handle_message_logging_ack(msg);
@@ -1979,6 +1988,49 @@ void MavlinkReceiver::handle_message_gps_rtcm_data(mavlink_message_t *msg)
 	}
 
 }
+
+void
+MavlinkReceiver::handle_message_parafoil_att(mavlink_message_t *msg)
+{
+   mavlink_parafoil_att_t one_position;
+   mavlink_msg_parafoil_att_decode(msg, &one_position);
+
+   struct parafoil_att_s f;
+   memset(&f, 0, sizeof(f));
+
+   f.timestamp=hrt_absolute_time();
+   f.roll_angle=one_position.parafoil_roll;
+   f.pitch_angle=one_position.parafoil_pitch;
+   f.yaw_angle=one_position.parafoil_yaw;
+
+   if (_parafoil_att_pub == nullptr) {
+       _parafoil_att_pub = orb_advertise(ORB_ID(parafoil_att), &f);
+   } else {
+       orb_publish(ORB_ID(parafoil_att), _parafoil_att_pub, &f);
+   }
+}
+
+void
+MavlinkReceiver::handle_message_parafoil_attrate(mavlink_message_t *msg)
+{
+   mavlink_parafoil_attrate_t one_position;
+   mavlink_msg_parafoil_attrate_decode(msg, &one_position);
+
+   struct parafoil_attrate_s f;
+   memset(&f, 0, sizeof(f));
+
+   f.timestamp=hrt_absolute_time();
+   f.roll_rate=one_position.parafoil_roll_rate;
+   f.pitch_rate=one_position.parafoil_pitch_rate;
+   f.yaw_rate=one_position.parafoil_yaw_rate;
+
+   if (_parafoil_attrate_pub == nullptr) {
+       _parafoil_attrate_pub = orb_advertise(ORB_ID(parafoil_attrate), &f);
+   } else {
+       orb_publish(ORB_ID(parafoil_attrate), _parafoil_attrate_pub, &f);
+   }
+}
+
 
 void
 MavlinkReceiver::handle_message_hil_state_quaternion(mavlink_message_t *msg)
