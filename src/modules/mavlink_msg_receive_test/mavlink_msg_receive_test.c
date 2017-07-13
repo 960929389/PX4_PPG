@@ -150,39 +150,68 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
 
    //orb_set_interval(motor_sub_fd, 1000);
 
-   px4_pollfd_struct_t fds[2];
-   fds[0].fd     = parafoil_att_sub_fd;
-   fds[0].events = POLLIN;
-   fds[1].fd     = parafoil_attrate_sub_fd;
-   fds[1].events = POLLIN;
+//   px4_pollfd_struct_t fds[2];
+//   fds[0].fd     = parafoil_att_sub_fd;
+//   fds[0].events = POLLIN;
+//   fds[1].fd     = parafoil_attrate_sub_fd;
+//   fds[1].events = POLLIN;
 
    while (!thread_should_exit) {
-       int poll_ret = px4_poll(fds, 2, 50);
-       if(poll_ret < 0)
-       {
-           continue;
-       }
-       if(poll_ret == 0)
-       {
-           continue;
-       }
-       if (fds[0].revents & POLLIN) {
-           struct parafoil_att_s parafoil_att_data;
-           orb_copy(ORB_ID(parafoil_att), parafoil_att_sub_fd, &parafoil_att_data);
-           PX4_WARN("roll_angle: %8.4f\tpitch_angle: %8.4f\tyaw_angle: %8.4f",
-                (double)((parafoil_att_data.roll_angle)*180.0f/3.14f),
-                (double)((parafoil_att_data.pitch_angle)*180.0f/3.14f),
-                (double)((parafoil_att_data.yaw_angle)*180.0f/3.14f));
-       }
-       if (fds[1].revents & POLLIN) {
-		   struct parafoil_attrate_s		parafoil_attrate_data;
-		   orb_copy(ORB_ID(parafoil_attrate), parafoil_attrate_sub_fd, &parafoil_attrate_data);
-		   PX4_INFO("");
-		   PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
+
+	    bool updated;
+		/* Check if parameters have changed */
+		orb_check(parafoil_att_sub_fd, &updated);
+		if (updated) {
+			struct parafoil_att_s parafoil_att_data;
+			orb_copy(ORB_ID(parafoil_att), parafoil_att_sub_fd, &parafoil_att_data);
+			PX4_WARN("roll_angle: %8.4f\tpitch_angle: %8.4f\tyaw_angle: %8.4f",
+				(double)((parafoil_att_data.roll_angle)*180.0f/3.14f),
+				(double)((parafoil_att_data.pitch_angle)*180.0f/3.14f),
+				(double)((parafoil_att_data.yaw_angle)*180.0f/3.14f));
+		}
+
+		/* Check if parameters have changed */
+		orb_check(parafoil_attrate_sub_fd, &updated);
+		if (updated) {
+			struct parafoil_attrate_s		parafoil_attrate_data;
+			orb_copy(ORB_ID(parafoil_attrate), parafoil_attrate_sub_fd, &parafoil_attrate_data);
+			PX4_INFO("");
+			PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
 				   (double)((parafoil_attrate_data.roll_rate)*180.0f/3.14f),
 				   (double)((parafoil_attrate_data.pitch_rate)*180.0f/3.14f),
 				   (double)((parafoil_attrate_data.yaw_rate)*180.0f/3.14f));
-       }
+		}
+
+		usleep(20);
+
+
+//       int poll_ret = px4_poll(fds, 2, 50);
+//       if(poll_ret < 0)
+//       {
+//           continue;
+//       }
+//       if(poll_ret == 0)
+//       {
+//           continue;
+//       }
+//       if (fds[0].revents & POLLIN) {
+//           struct parafoil_att_s parafoil_att_data;
+//           orb_copy(ORB_ID(parafoil_att), parafoil_att_sub_fd, &parafoil_att_data);
+//           PX4_WARN("roll_angle: %8.4f\tpitch_angle: %8.4f\tyaw_angle: %8.4f",
+//                (double)((parafoil_att_data.roll_angle)*180.0f/3.14f),
+//                (double)((parafoil_att_data.pitch_angle)*180.0f/3.14f),
+//                (double)((parafoil_att_data.yaw_angle)*180.0f/3.14f));
+//       }
+//       if (fds[1].revents & POLLIN) {
+//		   struct parafoil_attrate_s		parafoil_attrate_data;
+//		   orb_copy(ORB_ID(parafoil_attrate), parafoil_attrate_sub_fd, &parafoil_attrate_data);
+//		   PX4_INFO("");
+//		   PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
+//				   (double)((parafoil_attrate_data.roll_rate)*180.0f/3.14f),
+//				   (double)((parafoil_attrate_data.pitch_rate)*180.0f/3.14f),
+//				   (double)((parafoil_attrate_data.yaw_rate)*180.0f/3.14f));
+//       }
+
    }
 
    warnx("[mavlink_msg_receive] exiting.\n");
