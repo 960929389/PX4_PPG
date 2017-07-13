@@ -144,16 +144,20 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
 
    thread_running = true;
 
-   /* subscribe to sensor_combined topic */
-   int topic_sub_fd = orb_subscribe(ORB_ID(parafoil_att));
+   /* subscribe to parafoil_att/attrate topic */
+   int parafoil_att_sub_fd = orb_subscribe(ORB_ID(parafoil_att));
+   int parafoil_attrate_sub_fd = orb_subscribe(ORB_ID(parafoil_attrate));
+
    //orb_set_interval(motor_sub_fd, 1000);
 
-   px4_pollfd_struct_t fds[1];
-   fds[0].fd     = topic_sub_fd;
+   px4_pollfd_struct_t fds[2];
+   fds[0].fd     = parafoil_att_sub_fd;
    fds[0].events = POLLIN;
+   fds[1].fd     = parafoil_attrate_sub_fd;
+   fds[1].events = POLLIN;
 
    while (!thread_should_exit) {
-       int poll_ret = px4_poll(fds, 1, 500);
+       int poll_ret = px4_poll(fds, 2, 500);
        if(poll_ret < 0)
        {
            continue;
@@ -163,12 +167,21 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
            continue;
        }
        if (fds[0].revents & POLLIN) {
-           struct parafoil_att_s topic_data;
-           orb_copy(ORB_ID(parafoil_att), topic_sub_fd, &topic_data);
-           PX4_WARN("\t%8.4f\t%8.4f\t%8.4f",
-                (double)topic_data.roll_angle,
-                (double)topic_data.pitch_angle,
-                (double)topic_data.yaw_angle);
+           struct parafoil_att_s parafoil_att_data;
+           orb_copy(ORB_ID(parafoil_att), parafoil_att_sub_fd, &parafoil_att_data);
+           PX4_WARN("roll_angle: %8.4f\tpitch_angle: %8.4f\tyaw_angle: %8.4f",
+                (double)((parafoil_att_data.roll_angle)*180.0f/3.14f),
+                (double)((parafoil_att_data.pitch_angle)*180.0f/3.14f),
+                (double)((parafoil_att_data.yaw_angle)*180.0f/3.14f));
+       }
+       if (fds[1].revents & POLLIN) {
+		   struct parafoil_attrate_s		parafoil_attrate_data;
+		   orb_copy(ORB_ID(parafoil_attrate), parafoil_attrate_sub_fd, &parafoil_attrate_data);
+		   PX4_INFO("");
+		   PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
+				   (double)((parafoil_attrate_data.roll_rate)*180.0f/3.14f),
+				   (double)((parafoil_attrate_data.pitch_rate)*180.0f/3.14f),
+				   (double)((parafoil_attrate_data.yaw_rate)*180.0f/3.14f));
        }
    }
 

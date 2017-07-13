@@ -1,3 +1,4 @@
+.vscode/
 *.d
 !ROMFS/*/*.d
 !ROMFS/*/*/*.d
