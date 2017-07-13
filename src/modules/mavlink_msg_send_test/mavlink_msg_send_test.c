@@ -49,6 +49,8 @@
 #include <uORB/uORB.h>
 #include <uORB/topics/parafoil_att.h>
 #include <uORB/topics/parafoil_attrate.h>
+#include <uORB/topics/vehicle_attitude.h>
+#include <math.h>
 
 #include <systemlib/systemlib.h>
 #include <systemlib/err.h>
@@ -142,6 +144,13 @@ int mavlink_msg_send_thread_main(int argc, char *argv[])
 
 	//
 	thread_running = true;
+
+	/*
+	 * do subscriptions
+	 */
+	int _v_att_sub = orb_subscribe(ORB_ID(vehicle_attitude));
+	struct vehicle_attitude_s	_v_att;			/**< vehicle attitude */
+
 	struct parafoil_att_s parafoil_att_data;
 	memset(&parafoil_att_data , 0, sizeof(parafoil_att_data));
 	orb_advert_t parafoil_att_pub = orb_advertise(ORB_ID(parafoil_att), &parafoil_att_data);
@@ -152,18 +161,34 @@ int mavlink_msg_send_thread_main(int argc, char *argv[])
 
 	while (!thread_should_exit) {
 
-		parafoil_att_data.roll_angle = 1;
-		parafoil_att_data.pitch_angle  = 1;
-		parafoil_att_data.yaw_angle  = 1;
+		/* Attitude */
+		/* check if there is a new setpoint */
+		bool updated;
+		orb_check(_v_att_sub, &updated);
+		if (updated) {
+			orb_copy(ORB_ID(vehicle_attitude), _v_att_sub, &_v_att);
+			float q0 = _v_att.q[0];
+			float q1 = _v_att.q[1];
+			float q2 = _v_att.q[2];
+			float q3 = _v_att.q[3];
+
+			parafoil_att_data.roll_angle = atan2f(2*(q0*q1 + q2*q3), 1 - 2*(q1*q1 + q2*q2));
+			parafoil_att_data.pitch_angle = asinf(2*(q0*q2 - q3*q1));
+			parafoil_att_data.yaw_angle = atan2f(2*(q0*q3 + q1*q2), 1 - 2*(q2*q2 + q3*q3));
+
+			parafoil_attrate_data.roll_rate = _v_att.rollspeed;
+			parafoil_attrate_data.pitch_rate = _v_att.pitchspeed;
+			parafoil_attrate_data.yaw_rate = _v_att.yawspeed;
+
+		}
+
 		orb_publish(ORB_ID(parafoil_att), parafoil_att_pub, &parafoil_att_data);
 		PX4_WARN("publishing parafoil att: %5.3f %5.3f %5.3f",
 				(double)parafoil_att_data.roll_angle,
 				(double)parafoil_att_data.pitch_angle,
 				(double)parafoil_att_data.yaw_angle);
 
-		parafoil_attrate_data.roll_rate = 1.0f;
-		parafoil_attrate_data.pitch_rate = 2.0f;
-		parafoil_attrate_data.yaw_rate = 3.0f;
+
 		orb_publish(ORB_ID(parafoil_attrate), parafoil_attrate_pub, &parafoil_attrate_data);
 		PX4_WARN("publishing parafoil attrate: %5.3f %5.3f %5.3f",
 				(double)parafoil_attrate_data.roll_rate,
