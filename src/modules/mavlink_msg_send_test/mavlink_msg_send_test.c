@@ -172,7 +172,7 @@ int mavlink_msg_send_thread_main(int argc, char *argv[])
 
 
 
-		sleep(2);
+		usleep(200);	/* sleep 200 us. -libn */
 	}
 
 	warnx("[mavlink_msg_send] exiting.\n");

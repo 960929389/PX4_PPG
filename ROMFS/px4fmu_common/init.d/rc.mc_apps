@@ -46,3 +46,8 @@ mc_pos_control start
 land_detector start multicopter
 
 mavlink_msg_send_test start
+
+mavlink stop-all -d /dev/ttyS2
+mavlink start -d /dev/ttyS2 -m custom -b 57600
+mavlink stream  -d /dev/ttyS2 -s PARAFOIL_ATTRATE -r 5
+mavlink stream  -d /dev/ttyS2 -s PARAFOIL_ATT -r 5
