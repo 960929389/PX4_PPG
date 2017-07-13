@@ -741,7 +741,7 @@ static const struct log_format_s log_formats[] = {
 	LOG_FORMAT(LOAD, "f", "CPU"),
 	LOG_FORMAT(DPRS, "Qffff", "errors,DPRESraw,DPRES,DPRESmax,Temp"),
 	/* custom message */
-	LOG_FORMAT(PR4A, "fff", "roll_angle22,pitch_angle22,yaw_angle22"),
+	LOG_FORMAT(PR4A, "fff", "roll_angle,pitch_angle,yaw_angle"),
 	LOG_FORMAT(PR4R, "fff", "roll_rate,pitch_rate,yaw_rate"),
 	/* system-level messages, ID >= 0x80 */
 	/* FMT: don't write format of format message, it's useless */

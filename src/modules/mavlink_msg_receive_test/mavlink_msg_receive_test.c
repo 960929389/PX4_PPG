@@ -157,7 +157,7 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
    fds[1].events = POLLIN;
 
    while (!thread_should_exit) {
-       int poll_ret = px4_poll(fds, 2, 500);
+       int poll_ret = px4_poll(fds, 2, 50);
        if(poll_ret < 0)
        {
            continue;
