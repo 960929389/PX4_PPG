@@ -111,6 +111,9 @@
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/commander_state.h>
 #include <uORB/topics/cpuload.h>
+/* custom message */
+#include <uORB/topics/parafoil_att.h>
+#include <uORB/topics/parafoil_attrate.h>
 
 #include <systemlib/systemlib.h>
 #include <systemlib/param/param.h>
@@ -1222,6 +1225,9 @@ int sdlog2_thread_main(int argc, char *argv[])
 		struct vehicle_land_detected_s land_detected;
 		struct cpuload_s cpuload;
 		struct vehicle_gps_position_s dual_gps_pos;
+		/* custom message */
+		struct parafoil_att_s parafoil_att;
+		struct parafoil_attrate_s parafoil_attrate;
 	} buf;
 
 	memset(&buf, 0, sizeof(buf));
@@ -1284,6 +1290,9 @@ int sdlog2_thread_main(int argc, char *argv[])
 			struct log_RPL6_s log_RPL6;
 			struct log_LOAD_s log_LOAD;
 			struct log_DPRS_s log_DPRS;
+			/* custom message */
+			struct log_PR4A_s log_PR4A;	/* parafoil attitude */
+			struct log_PR4R_s log_PR4R;	/* parafoil attitude rate */
 		} body;
 	} log_msg = {
 		LOG_PACKET_HEADER_INIT(0)
@@ -1334,6 +1343,9 @@ int sdlog2_thread_main(int argc, char *argv[])
 		int commander_state_sub;
 		int cpuload_sub;
 		int diff_pres_sub;
+		/* custome message */
+		int parafoil_att_sub;
+		int parafoil_attrate_sub;
 	} subs;
 
 	subs.cmd_sub = -1;
@@ -1377,6 +1389,9 @@ int sdlog2_thread_main(int argc, char *argv[])
 	subs.commander_state_sub = -1;
 	subs.cpuload_sub = -1;
 	subs.diff_pres_sub = -1;
+	/* custom message */
+	subs.parafoil_att_sub = -1;
+	subs.parafoil_attrate_sub = -1;
 
 	/* add new topics HERE */
 
@@ -1844,6 +1859,25 @@ int sdlog2_thread_main(int argc, char *argv[])
 				log_msg.body.log_ATSP.q_z = buf.att_sp.q_d[3];
 				LOGBUFFER_WRITE_AND_COUNT(ATSP);
 			}
+
+			/* --- parafoil_att --- */
+			if (copy_if_updated(ORB_ID(parafoil_att), &subs.parafoil_att_sub, &buf.parafoil_att)) {
+			   log_msg.msg_type = LOG_PR4A_MSG;
+			   log_msg.body.log_PR4A.roll_angle = buf.parafoil_att.roll_angle;
+			   log_msg.body.log_PR4A.pitch_angle = buf.parafoil_att.pitch_angle;
+			   log_msg.body.log_PR4A.yaw_angle = buf.parafoil_att.yaw_angle;
+			   LOGBUFFER_WRITE_AND_COUNT(PR4A);
+			}
+
+			/* --- parafoil_attrate --- */
+			if (copy_if_updated(ORB_ID(parafoil_attrate), &subs.parafoil_attrate_sub, &buf.parafoil_attrate)) {
+			   log_msg.msg_type = LOG_PR4R_MSG;
+			   log_msg.body.log_PR4R.roll_rate = buf.parafoil_attrate.roll_rate;
+			   log_msg.body.log_PR4R.pitch_rate = buf.parafoil_attrate.pitch_rate;
+			   log_msg.body.log_PR4R.yaw_rate = buf.parafoil_attrate.yaw_rate;
+			   LOGBUFFER_WRITE_AND_COUNT(PR4R);
+			}
+
 
 			/* --- RATES SETPOINT --- */
 			if (copy_if_updated(ORB_ID(vehicle_rates_setpoint), &subs.rates_sp_sub, &buf.rates_sp)) {

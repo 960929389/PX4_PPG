@@ -77,6 +77,22 @@ struct log_ATSP_s {
 	float q_z;
 };
 
+/* --- PR4A - Parafoil Attitude --- */
+#define LOG_PR4A_MSG 64
+struct log_PR4A_s {
+	float roll_angle;
+	float pitch_angle;
+	float yaw_angle;
+};
+
+/* --- PR4R - Parafoil Attitude Rate --- */
+#define LOG_PR4R_MSG 65
+struct log_PR4R_s {
+	float roll_rate;
+	float pitch_rate;
+	float yaw_rate;
+};
+
 /* --- IMU - IMU SENSORS --- */
 #define LOG_IMU_MSG 4
 #define LOG_IMU1_MSG 22
@@ -724,6 +740,9 @@ static const struct log_format_s log_formats[] = {
 	LOG_FORMAT(LAND, "B", "Landed"),
 	LOG_FORMAT(LOAD, "f", "CPU"),
 	LOG_FORMAT(DPRS, "Qffff", "errors,DPRESraw,DPRES,DPRESmax,Temp"),
+	/* custom message */
+	LOG_FORMAT(PR4A, "fff", "roll_angle22,pitch_angle22,yaw_angle22"),
+	LOG_FORMAT(PR4R, "fff", "roll_rate,pitch_rate,yaw_rate"),
 	/* system-level messages, ID >= 0x80 */
 	/* FMT: don't write format of format message, it's useless */
 	LOG_FORMAT(TIME, "Q", "StartTime"),
