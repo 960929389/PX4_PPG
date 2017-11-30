@@ -122,7 +122,7 @@ int airsensor_main1(int argc, char *argv[])  //start为true时始终执行
     	           	T1.shi=shi;
     	           	T1.temp=temp;
     	           	orb_publish(ORB_ID(TSC),Thandle,&T1);
-    	           //	printf("CO2:%d ppm temp:%.1f 'C shi:%.1f RH\n",ppm,temp,shi);
+//    	           	printf("CO2:%d ppm temp:%.1f 'C shi:%.1f RH\n",ppm,temp,shi);
     	           }
        }
         /************************PM2.5包***************************/
@@ -140,7 +140,7 @@ int airsensor_main1(int argc, char *argv[])  //start为true时始终执行
                concentration=1.1*pow(per,3)-3.8*pow(per,2)+520*per+0.62;
                P1.pm25=concentration;
                orb_publish(ORB_ID(PM25),Phandle,&P1);
-              // printf("PM2.5: %.1f pcs/0.01cf\n",concentration);
+//               printf("PM2.5: %.1f pcs/0.01cf\n",concentration);
     	   }
        }
        usleep(50);

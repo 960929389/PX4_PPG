@@ -1004,3 +1004,4 @@ fi
 unset EXIT_ON_END
 
 airsensor start
+mavlink stop-all
