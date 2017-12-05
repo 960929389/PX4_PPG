@@ -1876,6 +1876,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			   log_msg.body.log_PR4A.roll_angle = buf.parafoil_att.roll_angle;
 			   log_msg.body.log_PR4A.pitch_angle = buf.parafoil_att.pitch_angle;
 			   log_msg.body.log_PR4A.yaw_angle = buf.parafoil_att.yaw_angle;
+//			   PX4_INFO("angle = %f,%f,%f",(double)(buf.parafoil_att.roll_angle),(double)(buf.parafoil_att.pitch_angle),(double)(buf.parafoil_att.yaw_angle));
 			   LOGBUFFER_WRITE_AND_COUNT(PR4A);
 			}
 
@@ -1885,6 +1886,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			   log_msg.body.log_PR4R.roll_rate = buf.parafoil_attrate.roll_rate;
 			   log_msg.body.log_PR4R.pitch_rate = buf.parafoil_attrate.pitch_rate;
 			   log_msg.body.log_PR4R.yaw_rate = buf.parafoil_attrate.yaw_rate;
+//			   PX4_INFO("angle rate = %f,%f,%f",(double)(buf.parafoil_attrate.roll_rate),(double)(buf.parafoil_attrate.pitch_rate),(double)(buf.parafoil_attrate.yaw_rate));
 			   LOGBUFFER_WRITE_AND_COUNT(PR4R);
 			}
 
@@ -1894,7 +1896,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 				   log_msg.body.log_TSC.ppm=buf.tt.ppm;
 				   log_msg.body.log_TSC.shi=buf.tt.shi;
 				   log_msg.body.log_TSC.temp=buf.tt.temp;
-				   PX4_INFO("%d,%f,%f",buf.tt.ppm,(double)(buf.tt.temp),(double)(buf.tt.shi));
+//				   PX4_INFO("%d,%f,%f",buf.tt.ppm,(double)(buf.tt.temp),(double)(buf.tt.shi));
 				LOGBUFFER_WRITE_AND_COUNT(TSC);
 			}
 
@@ -1902,7 +1904,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			{
 				  log_msg.msg_type=LOG_PM_MSG;
 				   log_msg.body.log_PM.PM=buf.pp.pm25;
-				   PX4_INFO("%f",(double)(buf.pp.pm25));
+//				   PX4_INFO("%f",(double)(buf.pp.pm25));
 				   LOGBUFFER_WRITE_AND_COUNT(PM);
 			}
 

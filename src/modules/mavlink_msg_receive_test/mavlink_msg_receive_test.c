@@ -175,7 +175,6 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
 		if (updated) {
 			struct parafoil_attrate_s		parafoil_attrate_data;
 			orb_copy(ORB_ID(parafoil_attrate), parafoil_attrate_sub_fd, &parafoil_attrate_data);
-			PX4_INFO("123");
 //			PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
 //				   (double)((parafoil_attrate_data.roll_rate)*180.0f/3.14f),
 //				   (double)((parafoil_attrate_data.pitch_rate)*180.0f/3.14f),

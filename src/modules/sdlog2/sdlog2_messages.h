@@ -93,14 +93,14 @@ struct log_PR4R_s {
 	float yaw_rate;
 };
 
-#define LOG_TSC_MSG 65
+#define LOG_TSC_MSG 66
 struct log_TSC_s{
 	uint32_t ppm;
 	float temp;
 	float shi;
 };
 
-#define LOG_PM_MSG 66
+#define LOG_PM_MSG 67
 struct log_PM_s{
 	float PM;
 };
