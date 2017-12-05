@@ -104,6 +104,7 @@ int airsensor_main1(int argc, char *argv[])  //start为true时始终执行
     /****************************************/
     void* Thandle=orb_advertise(ORB_ID(TSC),&T1);
     void* Phandle=orb_advertise(ORB_ID(PM25),&P1);
+    PX4_INFO("serial opened!");
     while(start)
     {
        if(read(f5,&rec,1)>0)
