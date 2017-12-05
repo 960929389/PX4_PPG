@@ -114,6 +114,8 @@
 /* custom message */
 #include <uORB/topics/parafoil_att.h>
 #include <uORB/topics/parafoil_attrate.h>
+#include <uORB/topics/TSC.h>
+#include <uORB/topics/PM25.h>
 
 #include <systemlib/systemlib.h>
 #include <systemlib/param/param.h>
@@ -1228,6 +1230,8 @@ int sdlog2_thread_main(int argc, char *argv[])
 		/* custom message */
 		struct parafoil_att_s parafoil_att;
 		struct parafoil_attrate_s parafoil_attrate;
+		struct TSC_s tt;
+		struct PM25_s pp;
 	} buf;
 
 	memset(&buf, 0, sizeof(buf));
@@ -1293,6 +1297,8 @@ int sdlog2_thread_main(int argc, char *argv[])
 			/* custom message */
 			struct log_PR4A_s log_PR4A;	/* parafoil attitude */
 			struct log_PR4R_s log_PR4R;	/* parafoil attitude rate */
+			struct log_TSC_s log_TSC;
+			struct log_PM_s log_PM;
 		} body;
 	} log_msg = {
 		LOG_PACKET_HEADER_INIT(0)
@@ -1346,6 +1352,8 @@ int sdlog2_thread_main(int argc, char *argv[])
 		/* custome message */
 		int parafoil_att_sub;
 		int parafoil_attrate_sub;
+		int Thandle;
+		int Phandle;
 	} subs;
 
 	subs.cmd_sub = -1;
@@ -1392,6 +1400,8 @@ int sdlog2_thread_main(int argc, char *argv[])
 	/* custom message */
 	subs.parafoil_att_sub = -1;
 	subs.parafoil_attrate_sub = -1;
+	subs.Thandle=-1;
+	subs.Phandle=-1;
 
 	/* add new topics HERE */
 
@@ -1878,6 +1888,23 @@ int sdlog2_thread_main(int argc, char *argv[])
 			   LOGBUFFER_WRITE_AND_COUNT(PR4R);
 			}
 
+			if(copy_if_updated(ORB_ID(TSC), &subs.Thandle, &buf.tt))
+			{
+				  log_msg.msg_type=LOG_TSC_MSG;
+				   log_msg.body.log_TSC.ppm=buf.tt.ppm;
+				   log_msg.body.log_TSC.shi=buf.tt.shi;
+				   log_msg.body.log_TSC.temp=buf.tt.temp;
+				   PX4_INFO("%d,%f,%f",buf.tt.ppm,(double)(buf.tt.temp),(double)(buf.tt.shi));
+				LOGBUFFER_WRITE_AND_COUNT(TSC);
+			}
+
+			if(copy_if_updated(ORB_ID(PM25), &subs.Phandle, &buf.pp))
+			{
+				  log_msg.msg_type=LOG_PM_MSG;
+				   log_msg.body.log_PM.PM=buf.pp.pm25;
+				   PX4_INFO("%f",(double)(buf.pp.pm25));
+				   LOGBUFFER_WRITE_AND_COUNT(PM);
+			}
 
 			/* --- RATES SETPOINT --- */
 			if (copy_if_updated(ORB_ID(vehicle_rates_setpoint), &subs.rates_sp_sub, &buf.rates_sp)) {

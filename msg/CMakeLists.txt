@@ -127,6 +127,8 @@ set(msg_file_names
 	# custom messages:
 	parafoil_att.msg
 	parafoil_attrate.msg
+	TSC.msg
+	PM25.msg
 	
 	)
 

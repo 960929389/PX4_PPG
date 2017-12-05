@@ -129,6 +129,7 @@ set(config_module_list
 	# custom progress
 	#
 	modules/mavlink_msg_receive_test
+	sensor/airsensor
 
 	#
 	# Libraries

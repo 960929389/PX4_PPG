@@ -93,6 +93,18 @@ struct log_PR4R_s {
 	float yaw_rate;
 };
 
+#define LOG_TSC_MSG 65
+struct log_TSC_s{
+	uint32_t ppm;
+	float temp;
+	float shi;
+};
+
+#define LOG_PM_MSG 66
+struct log_PM_s{
+	float PM;
+};
+
 /* --- IMU - IMU SENSORS --- */
 #define LOG_IMU_MSG 4
 #define LOG_IMU1_MSG 22
@@ -743,6 +755,8 @@ static const struct log_format_s log_formats[] = {
 	/* custom message */
 	LOG_FORMAT(PR4A, "fff", "roll_angle,pitch_angle,yaw_angle"),
 	LOG_FORMAT(PR4R, "fff", "roll_rate,pitch_rate,yaw_rate"),
+	LOG_FORMAT(TSC,"Iff","ppm,temp,shi"),
+	LOG_FORMAT(PM,"f","PM"),
 	/* system-level messages, ID >= 0x80 */
 	/* FMT: don't write format of format message, it's useless */
 	LOG_FORMAT(TIME, "Q", "StartTime"),

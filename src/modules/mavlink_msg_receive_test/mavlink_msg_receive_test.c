@@ -164,10 +164,10 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
 		if (updated) {
 			struct parafoil_att_s parafoil_att_data;
 			orb_copy(ORB_ID(parafoil_att), parafoil_att_sub_fd, &parafoil_att_data);
-			PX4_WARN("roll_angle: %8.4f\tpitch_angle: %8.4f\tyaw_angle: %8.4f",
-				(double)((parafoil_att_data.roll_angle)*180.0f/3.14f),
-				(double)((parafoil_att_data.pitch_angle)*180.0f/3.14f),
-				(double)((parafoil_att_data.yaw_angle)*180.0f/3.14f));
+//			PX4_WARN("roll_angle: %8.4f\tpitch_angle: %8.4f\tyaw_angle: %8.4f",
+//				(double)((parafoil_att_data.roll_angle)*180.0f/3.14f),
+//				(double)((parafoil_att_data.pitch_angle)*180.0f/3.14f),
+//				(double)((parafoil_att_data.yaw_angle)*180.0f/3.14f));
 		}
 
 		/* Check if parameters have changed */
@@ -175,11 +175,11 @@ int mavlink_msg_receive_thread_main(int argc, char *argv[])
 		if (updated) {
 			struct parafoil_attrate_s		parafoil_attrate_data;
 			orb_copy(ORB_ID(parafoil_attrate), parafoil_attrate_sub_fd, &parafoil_attrate_data);
-			PX4_INFO("");
-			PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
-				   (double)((parafoil_attrate_data.roll_rate)*180.0f/3.14f),
-				   (double)((parafoil_attrate_data.pitch_rate)*180.0f/3.14f),
-				   (double)((parafoil_attrate_data.yaw_rate)*180.0f/3.14f));
+			PX4_INFO("123");
+//			PX4_WARN("roll_rate: %8.4f\tpitch_rate: %8.4f\tyaw_rate: %8.4f",
+//				   (double)((parafoil_attrate_data.roll_rate)*180.0f/3.14f),
+//				   (double)((parafoil_attrate_data.pitch_rate)*180.0f/3.14f),
+//				   (double)((parafoil_attrate_data.yaw_rate)*180.0f/3.14f));
 		}
 
 		usleep(20);
