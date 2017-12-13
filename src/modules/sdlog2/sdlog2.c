@@ -1921,12 +1921,14 @@ int sdlog2_thread_main(int argc, char *argv[])
 			if (copy_if_updated_multi(ORB_ID(actuator_outputs), 0, &subs.act_outputs_sub, &buf.act_outputs)) {
 				log_msg.msg_type = LOG_OUT0_MSG;
 				memcpy(log_msg.body.log_OUT.output, buf.act_outputs.output, sizeof(log_msg.body.log_OUT.output));
+//				PX4_INFO("OUT0 = %f, %f, %f, %f, %f, %f, %f, %f",(double)log_msg.body.log_OUT.output[0],(double)log_msg.body.log_OUT.output[1],(double)log_msg.body.log_OUT.output[2],(double)log_msg.body.log_OUT.output[3],(double)log_msg.body.log_OUT.output[4],(double)log_msg.body.log_OUT.output[5],(double)log_msg.body.log_OUT.output[6],(double)log_msg.body.log_OUT.output[7]);
 				LOGBUFFER_WRITE_AND_COUNT(OUT);
 			}
 
 			if (copy_if_updated_multi(ORB_ID(actuator_outputs), 1, &subs.act_outputs_1_sub, &buf.act_outputs)) {
 				log_msg.msg_type = LOG_OUT1_MSG;
 				memcpy(log_msg.body.log_OUT.output, buf.act_outputs.output, sizeof(log_msg.body.log_OUT.output));
+//				PX4_INFO("OUT0 = %f, %f, %f, %f, %f, %f, %f, %f",(double)log_msg.body.log_OUT.output[0],(double)log_msg.body.log_OUT.output[1],(double)log_msg.body.log_OUT.output[2],(double)log_msg.body.log_OUT.output[3],(double)log_msg.body.log_OUT.output[4],(double)log_msg.body.log_OUT.output[5],(double)log_msg.body.log_OUT.output[6],(double)log_msg.body.log_OUT.output[7]);
 				LOGBUFFER_WRITE_AND_COUNT(OUT);
 			}
 
