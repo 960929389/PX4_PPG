@@ -116,6 +116,7 @@
 #include <uORB/topics/parafoil_attrate.h>
 #include <uORB/topics/TSC.h>
 #include <uORB/topics/PM25.h>
+#include <uORB/topics/energy_controller_pid.h>
 
 #include <systemlib/systemlib.h>
 #include <systemlib/param/param.h>
@@ -1232,6 +1233,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 		struct parafoil_attrate_s parafoil_attrate;
 		struct TSC_s tt;
 		struct PM25_s pp;
+		struct energy_controller_pid_s energy_controller_pid;
 	} buf;
 
 	memset(&buf, 0, sizeof(buf));
@@ -1299,6 +1301,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 			struct log_PR4R_s log_PR4R;	/* parafoil attitude rate */
 			struct log_TSC_s log_TSC;
 			struct log_PM_s log_PM;
+			struct log_PIDE_s log_PIDE;
 		} body;
 	} log_msg = {
 		LOG_PACKET_HEADER_INIT(0)
@@ -1354,6 +1357,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 		int parafoil_attrate_sub;
 		int Thandle;
 		int Phandle;
+		int pid_error_sub;
 	} subs;
 
 	subs.cmd_sub = -1;
@@ -1402,6 +1406,7 @@ int sdlog2_thread_main(int argc, char *argv[])
 	subs.parafoil_attrate_sub = -1;
 	subs.Thandle=-1;
 	subs.Phandle=-1;
+	subs.pid_error_sub=-1;
 
 	/* add new topics HERE */
 
@@ -1892,20 +1897,46 @@ int sdlog2_thread_main(int argc, char *argv[])
 
 			if(copy_if_updated(ORB_ID(TSC), &subs.Thandle, &buf.tt))
 			{
-				  log_msg.msg_type=LOG_TSC_MSG;
-				   log_msg.body.log_TSC.ppm=buf.tt.ppm;
-				   log_msg.body.log_TSC.shi=buf.tt.shi;
-				   log_msg.body.log_TSC.temp=buf.tt.temp;
+				log_msg.msg_type=LOG_TSC_MSG;
+				log_msg.body.log_TSC.ppm=buf.tt.ppm;
+				log_msg.body.log_TSC.shi=buf.tt.shi;
+				log_msg.body.log_TSC.temp=buf.tt.temp;
 //				   PX4_INFO("%d,%f,%f",buf.tt.ppm,(double)(buf.tt.temp),(double)(buf.tt.shi));
 				LOGBUFFER_WRITE_AND_COUNT(TSC);
 			}
 
 			if(copy_if_updated(ORB_ID(PM25), &subs.Phandle, &buf.pp))
 			{
-				  log_msg.msg_type=LOG_PM_MSG;
-				   log_msg.body.log_PM.PM=buf.pp.pm25;
+				log_msg.msg_type=LOG_PM_MSG;
+				log_msg.body.log_PM.PM=buf.pp.pm25;
 //				   PX4_INFO("%f",(double)(buf.pp.pm25));
 				   LOGBUFFER_WRITE_AND_COUNT(PM);
+			}
+
+			if(copy_if_updated(ORB_ID(energy_controller_pid), &subs.pid_error_sub, &buf.energy_controller_pid))
+			{
+				log_msg.msg_type=LOG_PIDE_MSG;
+				log_msg.body.log_PIDE.Parameter_forward_velocity_p=buf.energy_controller_pid.Parameter_forward_velocity_p;
+				log_msg.body.log_PIDE.Parameter_forward_velocity_i=buf.energy_controller_pid.Parameter_forward_velocity_i;
+				log_msg.body.log_PIDE.Parameter_forward_velocity_d=buf.energy_controller_pid.Parameter_forward_velocity_d;
+				log_msg.body.log_PIDE.Error_forward_velocity_p=buf.energy_controller_pid.Error_forward_velocity_p;
+//				   log_msg.body.log_PIDE.Error_forward_velocity_i=1.0f;
+//				   log_msg.body.log_PIDE.Error_forward_velocity_d=1.0f;
+				log_msg.body.log_PIDE.Output_forward_velocity_p=buf.energy_controller_pid.Output_forward_velocity_p;
+				log_msg.body.log_PIDE.Output_forward_velocity_i=buf.energy_controller_pid.Output_forward_velocity_i;
+				log_msg.body.log_PIDE.Output_forward_velocity_d=buf.energy_controller_pid.Output_forward_velocity_d;
+
+				log_msg.body.log_PIDE.Parameter_vertical_velocity_p=buf.energy_controller_pid.Parameter_vertical_velocity_p;
+				log_msg.body.log_PIDE.Parameter_vertical_velocity_i=buf.energy_controller_pid.Parameter_vertical_velocity_i;
+				log_msg.body.log_PIDE.Parameter_vertical_velocity_d=buf.energy_controller_pid.Parameter_vertical_velocity_d;
+				log_msg.body.log_PIDE.Error_vertical_velocity_p=buf.energy_controller_pid.Error_vertical_velocity_p;
+//				   log_msg.body.log_PIDE.Error_vertical_velocity_i=1.0f;
+//				   log_msg.body.log_PIDE.Error_vertical_velocity_d=1.0f;
+				log_msg.body.log_PIDE.Output_vertical_velocity_p=buf.energy_controller_pid.Output_vertical_velocity_p;
+				log_msg.body.log_PIDE.Output_vertical_velocity_i=buf.energy_controller_pid.Output_vertical_velocity_i;
+				log_msg.body.log_PIDE.Output_vertical_velocity_d=buf.energy_controller_pid.Output_vertical_velocity_d;
+//				PX4_INFO("Parameter_forward_velocity_p = %f",(double)(100.0f*log_msg.body.log_PIDE.Parameter_forward_velocity_p));
+				LOGBUFFER_WRITE_AND_COUNT(PIDE);
 			}
 
 			/* --- RATES SETPOINT --- */

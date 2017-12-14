@@ -89,6 +89,7 @@
 #include <lib/mathlib/mathlib.h>
 #include <lib/geo/geo.h>
 #include <lib/tailsitter_recovery/tailsitter_recovery.h>
+#include <uORB/topics/energy_controller_pid.h>
 
 /**
  * Multicopter attitude control app start / stop handling function
@@ -147,6 +148,8 @@ private:
 	orb_advert_t	_v_rates_sp_pub;		/**< rate setpoint publication */
 	orb_advert_t	_actuators_0_pub;		/**< attitude actuator controls publication */
 	orb_advert_t	_controller_status_pub;	/**< controller status publication */
+	orb_advert_t energy_controller_pid_pub;			/**< custom message for energy_PID status display.  */
+
 
 	orb_id_t _rates_sp_id;	/**< pointer to correct rates setpoint uORB metadata structure */
 	orb_id_t _actuators_id;	/**< pointer to correct actuator controls0 uORB metadata structure */
@@ -164,6 +167,7 @@ private:
 	struct multirotor_motor_limits_s	_motor_limits;		/**< motor limits */
 	struct mc_att_ctrl_status_s 		_controller_status; /**< controller status */
 	struct battery_status_s				_battery_status;	/**< battery status */
+	struct energy_controller_pid_s energy_pid;
 
 	perf_counter_t	_loop_perf;			/**< loop performance counter */
 	perf_counter_t	_controller_latency_perf;
@@ -360,6 +364,7 @@ MulticopterAttitudeControl::MulticopterAttitudeControl() :
 	memset(&_vehicle_status, 0, sizeof(_vehicle_status));
 	memset(&_motor_limits, 0, sizeof(_motor_limits));
 	memset(&_controller_status, 0, sizeof(_controller_status));
+	memset(&energy_pid, 0, sizeof(energy_pid));
 	_vehicle_status.is_rotary_wing = true;
 
 	_params.att_p.zero();
@@ -823,8 +828,43 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 	Control_I = _rates_int;
 	Control_D = _params.rate_d.emult(_rates_prev - rates) / dt;
 
-	PX4_INFO("rates_err = %f, %f, %f",(double)(100.0f*(rates_err(0))),(double)(100.0f*(rates_err(1))),(double)(100.0f*(rates_err(2))));
-	PX4_INFO("PID = %f, %f, %f",(double)(100.0f*(Control_P(0)+Control_I(0)+Control_D(0))),(double)(100.0f*(Control_P(1)+Control_I(1)+Control_D(1))),(double)(100.0f*(Control_P(2)+Control_I(2)+Control_D(2))));
+	/* 3 channels: 1st: forward velocity;2nd: vertical velocity;3rd: yaw rate. -libn */
+	// 1 Parameters
+	energy_pid.Parameter_forward_velocity_p = (double)_params.rate_p(0);
+	energy_pid.Parameter_vertical_velocity_p = (double)_params.rate_p(1);
+	energy_pid.Parameter_forward_velocity_i = (double)_params.rate_i(0);
+	energy_pid.Parameter_vertical_velocity_i = (double)_params.rate_i(1);
+	energy_pid.Parameter_forward_velocity_d = (double)_params.rate_d(0);
+	energy_pid.Parameter_vertical_velocity_d = (double)_params.rate_d(1);
+//	PX4_INFO("Parameter_forward_velocity = %f, %f, %f",(double)(100.0*energy_pid.Parameter_forward_velocity_p),
+//			(double)(100.0*energy_pid.Parameter_forward_velocity_i),(double)(100.0*energy_pid.Parameter_forward_velocity_d));
+//	PX4_INFO("Parameter_vertical_velocity = %f, %f, %f",(double)(100.0*energy_pid.Parameter_vertical_velocity_p),
+//			(double)(100.0*energy_pid.Parameter_vertical_velocity_i),(double)(100.0*energy_pid.Parameter_vertical_velocity_d));
+
+	//2 Errors
+	energy_pid.Error_forward_velocity_p = rates_err(0);
+	energy_pid.Error_vertical_velocity_p = rates_err(1);
+//	PX4_INFO("Error_forward & veitical_velocity = %f,%f,int_f = %f,int_v = %f",
+//			energy_pid.Error_forward_velocity_p,energy_pid.Error_vertical_velocity_p,
+//			(double)_rates_int(0),(double)_rates_int(1));
+
+	//3 Outputs
+	energy_pid.Output_forward_velocity_p = (double)Control_P(0);
+	energy_pid.Output_vertical_velocity_p = (double)Control_P(1);
+	energy_pid.Output_forward_velocity_i = (double)Control_I(0);
+	energy_pid.Output_vertical_velocity_i = (double)Control_I(1);
+	energy_pid.Output_forward_velocity_d = (double)Control_D(0);
+	energy_pid.Output_vertical_velocity_d = (double)Control_D(1);
+	orb_publish(ORB_ID(energy_controller_pid), energy_controller_pid_pub, &energy_pid);
+//	PX4_INFO("Output_forward_velocity = %f, %f, %f",(double)(100.0*energy_pid.Output_forward_velocity_p),
+//				(double)(100.0*energy_pid.Output_forward_velocity_i),(double)(100.0*energy_pid.Output_forward_velocity_d));
+//	PX4_INFO("Output_vertical_velocity = %f, %f, %f",(double)(100.0*energy_pid.Output_vertical_velocity_p),
+//				(double)(100.0*energy_pid.Output_vertical_velocity_i),(double)(100.0*energy_pid.Output_vertical_velocity_d));
+//
+//	PX4_INFO("");
+
+//	PX4_INFO("rates_err = %f, %f, %f",(double)(100.0f*(rates_err(0))),(double)(100.0f*(rates_err(1))),(double)(100.0f*(rates_err(2))));
+//	PX4_INFO("PID = %f, %f, %f",(double)(100.0f*(Control_P(0)+Control_I(0)+Control_D(0))),(double)(100.0f*(Control_P(1)+Control_I(1)+Control_D(1))),(double)(100.0f*(Control_P(2)+Control_I(2)+Control_D(2))));
 
 	_rates_sp_prev = _rates_sp;
 	_rates_prev = rates;
@@ -832,7 +872,7 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 	/* update integral only if not saturated on low limit and if motor commands are not saturated */
 	if (_thrust_sp > MIN_TAKEOFF_THRUST && !_motor_limits.lower_limit && !_motor_limits.upper_limit) {
 		for (int i = AXIS_INDEX_ROLL; i < AXIS_COUNT; i++) {
-			if (fabsf(_att_control(i)) < _thrust_sp) {
+			if (fabsf(_att_control(i)) < _thrust_sp) {/* TODO: to be revised! -libn 20171214 */
 				float rate_i = _rates_int(i) + _params.rate_i(i) * rates_err(i) * dt;
 
 				if (PX4_ISFINITE(rate_i) && rate_i > -RATES_I_LIMIT && rate_i < RATES_I_LIMIT &&
@@ -843,6 +883,7 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 				}
 			}
 		}
+		PX4_INFO("rate_i = %f, %f",(double)(100.0f*_rates_int(0)),(double)(100.0f*_rates_int(1)));
 	}
 }
 
@@ -869,6 +910,8 @@ MulticopterAttitudeControl::task_main()
 	_vehicle_status_sub = orb_subscribe(ORB_ID(vehicle_status));
 	_motor_limits_sub = orb_subscribe(ORB_ID(multirotor_motor_limits));
 	_battery_status_sub = orb_subscribe(ORB_ID(battery_status));
+	energy_controller_pid_pub = orb_advertise(ORB_ID(energy_controller_pid), &energy_pid);
+
 
 	/* initialize parameters cache */
 	parameters_update();
@@ -943,13 +986,14 @@ MulticopterAttitudeControl::task_main()
 					_v_control_mode.flag_control_manual_enabled){
 //				PX4_INFO("Manual!");
 				/* manual control: energy controller. ref: multirotor-velocity control. -libn */
-				_rates_sp(0) = 0.1f;
-				_rates_sp(1) = 0.2f;
-				_rates_sp(2) = 0.3f;
-//				_rates_sp = math::Vector<3>(_manual_control_sp.y, -_manual_control_sp.x,
-//								_manual_control_sp.r).emult(_params.acro_rate_max);
+//				_rates_sp(0) = 0.1f;
+//				_rates_sp(1) = 0.2f;
+//				_rates_sp(2) = 0.3f;
+				_rates_sp = math::Vector<3>(_manual_control_sp.y, -_manual_control_sp.x,
+								_manual_control_sp.r).emult(_params.acro_rate_max);
 				/* publish attitude rates setpoint */
 				_v_rates_sp.roll = _rates_sp(0);
+				_thrust_sp = 0.5f; /* TODO: to enable _rates_i, need to be revised! -libn 20171214  */
 				_v_rates_sp.pitch = _rates_sp(1);
 				_v_rates_sp.yaw = _rates_sp(2);
 				_v_rates_sp.thrust = _thrust_sp;

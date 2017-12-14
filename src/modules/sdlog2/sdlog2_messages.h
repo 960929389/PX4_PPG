@@ -105,6 +105,30 @@ struct log_PM_s{
 	float PM;
 };
 
+#define LOG_PIDE_MSG 68
+struct log_PIDE_s{
+	float Parameter_forward_velocity_p;
+	float Parameter_forward_velocity_i;
+	float Parameter_forward_velocity_d;
+	float Error_forward_velocity_p;
+//	float Error_forward_velocity_i;
+//	float Error_forward_velocity_d;
+	float Output_forward_velocity_p;
+	float Output_forward_velocity_i;
+	float Output_forward_velocity_d;
+	float Parameter_vertical_velocity_p;
+	float Parameter_vertical_velocity_i;
+	float Parameter_vertical_velocity_d;
+	float Error_vertical_velocity_p;
+//	float Error_vertical_velocity_i;
+//	float Error_vertical_velocity_d;
+	float Output_vertical_velocity_p;
+	float Output_vertical_velocity_i;
+	float Output_vertical_velocity_d;
+
+
+};
+
 /* --- IMU - IMU SENSORS --- */
 #define LOG_IMU_MSG 4
 #define LOG_IMU1_MSG 22
@@ -757,6 +781,10 @@ static const struct log_format_s log_formats[] = {
 	LOG_FORMAT(PR4R, "fff", "roll_rate,pitch_rate,yaw_rate"),
 	LOG_FORMAT(TSC,"Iff","ppm,temp,shi"),
 	LOG_FORMAT(PM,"f","PM"),
+//	LOG_FORMAT(PIDE,"ffffffffffffffffff","Pfp,Pfi,Pfd,Efp,Efi,Efd,Ofp,Ofi,Ofd,Pvp,Pvi,Pvd,Evp,Evi,Evd,Ovp,Ovi,Ovd"),
+	LOG_FORMAT(PIDE, "ffffffffffffff",     "Pfp,Pfi,Pfd,Efp,Ofp,Ofi,Ofd,Pvp,Pvi,Pvd,Evp,Ovp,Ovi,Ovd"),
+//	LOG_FORMAT(PIDE,"ffffffffffffff","Pf_p,Pf_i,Pf_d,Ef_p,Of_p,Of_i,Of_d,Pv_p,Pv_i,Pv_d,Ev_p,Ov_p,Ov_i,Ov_d"),
+//	LOG_FORMAT(PIDE,"fff","p1,p2,p3"),
 	/* system-level messages, ID >= 0x80 */
 	/* FMT: don't write format of format message, it's useless */
 	LOG_FORMAT(TIME, "Q", "StartTime"),

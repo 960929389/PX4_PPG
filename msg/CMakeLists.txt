@@ -129,7 +129,7 @@ set(msg_file_names
 	parafoil_attrate.msg
 	TSC.msg
 	PM25.msg
-	
+	energy_controller_pid.msg
 	)
 
 # Get absolute paths
